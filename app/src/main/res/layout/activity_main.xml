@@ -35,12 +35,12 @@
         android:columnCount="2"
         android:rowCount="6">
 
-        <!--        Row 0       -->
+        <!--        Row 1       -->
         <TextView
             android:id="@+id/core_diameter_lbl"
             android:layout_width="0dp"
             android:layout_height="0dp"
-            android:layout_row="0"
+            android:layout_row="1"
             android:layout_rowSpan="1"
             android:layout_rowWeight="1"
             android:layout_column="0"
@@ -50,14 +50,14 @@
             android:inputType="none"
             android:autoSizeTextType="uniform"
             android:maxLines="1"
-            android:text="Core diameter (mm)" />
+            android:text="Hollow core diameter (mm)" />
 
 
         <EditText
             android:id="@+id/core_diameter"
             android:layout_width="0dp"
             android:layout_height="0dp"
-            android:layout_row="0"
+            android:layout_row="1"
             android:layout_rowSpan="1"
             android:layout_rowWeight="1"
             android:layout_column="1"
@@ -70,12 +70,12 @@
             android:maxLines="1"
             android:text="76" />
 
-        <!--        Row 1       -->
+        <!--        Row 2       -->
         <TextView
             android:id="@+id/full_radius_lbl"
             android:layout_width="0dp"
             android:layout_height="0dp"
-            android:layout_row="1"
+            android:layout_row="2"
             android:layout_rowSpan="1"
             android:layout_rowWeight="1"
             android:layout_column="0"
@@ -92,7 +92,7 @@
             android:id="@+id/full_radius"
             android:layout_width="0dp"
             android:layout_height="0dp"
-            android:layout_row="1"
+            android:layout_row="2"
             android:layout_rowSpan="1"
             android:layout_rowWeight="1"
             android:layout_column="1"
@@ -105,12 +105,12 @@
             android:maxLines="1"
             android:text="62" />
 
-        <!--        Row 2       -->
+        <!--        Row 3       -->
         <TextView
             android:id="@+id/empty_radius_lbl"
             android:layout_width="0dp"
             android:layout_height="0dp"
-            android:layout_row="2"
+            android:layout_row="3"
             android:layout_rowSpan="1"
             android:layout_rowWeight="1"
             android:layout_column="0"
@@ -127,7 +127,7 @@
             android:id="@+id/empty_radius"
             android:layout_width="0dp"
             android:layout_height="0dp"
-            android:layout_row="2"
+            android:layout_row="3"
             android:layout_rowSpan="1"
             android:layout_rowWeight="1"
             android:layout_column="1"
@@ -139,12 +139,13 @@
             android:autoSizeTextType="uniform"
             android:maxLines="1"
             android:text="30" />
-        <!--        Row 3       -->
+
+        <!--        Row 4       -->
         <TextView
             android:id="@+id/slot_width_lbl"
             android:layout_width="0dp"
             android:layout_height="0dp"
-            android:layout_row="3"
+            android:layout_row="4"
             android:layout_rowSpan="1"
             android:layout_rowWeight="1"
             android:layout_column="0"
@@ -154,14 +155,14 @@
             android:inputType="none"
             android:autoSizeTextType="uniform"
             android:maxLines="1"
-            android:text="Inside Width (mm)" />
+            android:text="Wall-to-wall width (mm)" />
 
 
         <EditText
             android:id="@+id/slot_width"
             android:layout_width="0dp"
             android:layout_height="0dp"
-            android:layout_row="3"
+            android:layout_row="4"
             android:layout_rowSpan="1"
             android:layout_rowWeight="1"
             android:layout_column="1"
@@ -174,13 +175,13 @@
             android:maxLines="1"
             android:text="64" />
 
-        <!--        Row 4       -->
+        <!--        Row 5       -->
 
         <TextView
             android:id="@+id/filament_diameter_lbl"
             android:layout_width="0dp"
             android:layout_height="0dp"
-            android:layout_row="4"
+            android:layout_row="5"
             android:layout_rowSpan="1"
             android:layout_rowWeight="1"
             android:layout_column="0"
@@ -196,7 +197,7 @@
             android:id="@+id/filament_diameter"
             android:layout_width="0dp"
             android:layout_height="0dp"
-            android:layout_row="4"
+            android:layout_row="5"
             android:layout_rowSpan="1"
             android:layout_rowWeight="1"
             android:layout_column="1"
@@ -209,13 +210,13 @@
             android:maxLines="1"
             android:text="1.75" />
 
-        <!--        Row 5       -->
+        <!--        Row 0       -->
 
         <TextView
             android:id="@+id/remaining_filament_lbl"
             android:layout_width="0dp"
             android:layout_height="0dp"
-            android:layout_row="5"
+            android:layout_row="0"
             android:layout_rowSpan="1"
             android:layout_rowWeight="1"
             android:layout_column="0"
@@ -228,10 +229,10 @@
             android:text="Remaining filament (meter)" />
 
         <TextView
-            android:id="@+id/remaining_filament"
+            android:id="@+id/txt_remaining_filament"
             android:layout_width="0dp"
             android:layout_height="0dp"
-            android:layout_row="5"
+            android:layout_row="0"
             android:layout_rowSpan="1"
             android:layout_rowWeight="1"
             android:layout_column="1"
