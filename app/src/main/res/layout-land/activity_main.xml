@@ -64,11 +64,11 @@
             android:layout_columnSpan="1"
             android:layout_columnWeight="2"
             android:autofillHints=""
-            android:gravity="center_vertical|end"
+            android:gravity="center_vertical|start"
             android:inputType="number"
             android:autoSizeTextType="uniform"
-            android:maxLines="1"
-            android:text="76" />
+            android:paddingStart="16dp"
+            android:maxLines="1"  />
 
         <!--        Row 2       -->
         <TextView
@@ -99,11 +99,11 @@
             android:layout_columnSpan="1"
             android:layout_columnWeight="2"
             android:autofillHints=""
-            android:gravity="center_vertical|end"
+            android:gravity="center_vertical|start"
             android:inputType="number"
             android:autoSizeTextType="uniform"
-            android:maxLines="1"
-            android:text="62" />
+            android:paddingStart="16dp"
+            android:maxLines="1" />
 
         <!--        Row 3       -->
         <TextView
@@ -134,11 +134,11 @@
             android:layout_columnSpan="1"
             android:layout_columnWeight="2"
             android:autofillHints=""
-            android:gravity="center_vertical|end"
+            android:gravity="center_vertical|start"
             android:inputType="number"
             android:autoSizeTextType="uniform"
-            android:maxLines="1"
-            android:text="30" />
+            android:paddingStart="16dp"
+            android:maxLines="1" />
 
         <!--        Row 4       -->
         <TextView
@@ -169,11 +169,11 @@
             android:layout_columnSpan="1"
             android:layout_columnWeight="2"
             android:autofillHints=""
-            android:gravity="center_vertical|end"
+            android:gravity="center_vertical|start"
             android:inputType="number"
             android:autoSizeTextType="uniform"
-            android:maxLines="1"
-            android:text="64" />
+            android:paddingStart="16dp"
+            android:maxLines="1" />
 
         <!--        Row 5       -->
 
@@ -187,7 +187,7 @@
             android:layout_column="0"
             android:layout_columnSpan="1"
             android:gravity="center_vertical|end"
-            android:layout_columnWeight="1"
+            android:layout_columnWeight="3"
             android:inputType="none"
             android:autoSizeTextType="uniform"
             android:maxLines="1"
@@ -202,13 +202,13 @@
             android:layout_rowWeight="1"
             android:layout_column="1"
             android:layout_columnSpan="1"
-            android:layout_columnWeight="1"
+            android:layout_columnWeight="2"
             android:autofillHints=""
-            android:gravity="center_vertical|end"
+            android:gravity="center_vertical|start"
             android:inputType="number"
             android:autoSizeTextType="uniform"
-            android:maxLines="1"
-            android:text="1.75" />
+            android:paddingStart="16dp"
+            android:maxLines="1" />
 
         <!--        Row 0       -->
 
@@ -241,8 +241,8 @@
             android:layout_columnWeight="1"
             android:inputType="none"
             android:autoSizeTextType="uniform"
-            android:maxLines="1"
-            android:text="219.7" />
+            android:maxLines="1" />
+
 
 
     </GridLayout>
