@@ -11,7 +11,7 @@
         android:layout_height="wrap_content"
         android:layout_gravity="fill"
         android:columnCount="2"
-        android:rowCount="1">
+        android:rowCount="2">
 
         <ImageView
             android:id="@+id/imageView"
@@ -19,247 +19,72 @@
             android:layout_height="0dp"
             android:layout_row="0"
             android:layout_rowSpan="1"
-            android:layout_rowWeight="1"
+            android:layout_rowWeight="4"
             android:layout_column="0"
             android:layout_columnSpan="1"
             android:layout_columnWeight="1"
+            android:contentDescription="@string/illustration_of_parameters"
             android:gravity="center_vertical|end"
             android:src="@drawable/illustration" />
 
-        <GridLayout
+        <include
             android:id="@+id/calc_layout"
+            layout="@layout/calc_grid"
             android:layout_width="0dp"
             android:layout_height="0dp"
             android:layout_row="0"
             android:layout_rowSpan="1"
-            android:layout_rowWeight="1"
+            android:layout_rowWeight="4"
             android:layout_column="1"
             android:layout_columnSpan="1"
+            android:layout_columnWeight="1" />
+
+        <LinearLayout
+            android:layout_width="0dp"
+            android:layout_height="0dp"
+            android:layout_row="1"
+            android:layout_rowSpan="1"
+            android:layout_rowWeight="1"
+            android:layout_column="0"
+            android:layout_columnSpan="2"
             android:layout_columnWeight="1"
-            android:layout_gravity="fill"
-            android:columnCount="2"
-            android:gravity="center_vertical|end"
-            android:rowCount="6">
+            android:orientation="horizontal"
+            android:gravity="center"
+            style="?android:attr/buttonBarStyle">
 
-            <!--        Row 1       -->
-            <TextView
-                android:id="@+id/core_diameter_lbl"
+            <Button
                 android:layout_width="0dp"
-                android:layout_height="0dp"
-                android:layout_row="1"
-                android:layout_rowSpan="1"
-                android:layout_rowWeight="1"
-                android:layout_column="0"
-                android:layout_columnSpan="1"
-                android:layout_columnWeight="3"
-                android:autoSizeTextType="uniform"
-                android:gravity="center_vertical|end"
-                android:inputType="none"
-                android:maxLines="1"
-                android:text="Hollow core diameter (mm)" />
+                android:layout_height="match_parent"
+                android:layout_weight="1"
+                android:layout_margin="4dp"
+                android:text="@string/button_minus_ten"
+                style="?android:attr/buttonBarButtonStyle" />
 
-
-            <EditText
-                android:id="@+id/core_diameter"
+            <Button
                 android:layout_width="0dp"
-                android:layout_height="0dp"
-                android:layout_row="1"
-                android:layout_rowSpan="1"
-                android:layout_rowWeight="1"
-                android:layout_column="1"
-                android:layout_columnSpan="1"
-                android:layout_columnWeight="2"
-                android:autoSizeTextType="uniform"
-                android:autofillHints=""
-                android:gravity="center_vertical|start"
-                android:hint="Enter hollow core diameter (mm)"
-                android:inputType="number"
-                android:maxLines="1"
-                android:paddingStart="16dp"
-                android:imeOptions="flagNoExtractUi"/>
+                android:layout_height="match_parent"
+                android:layout_weight="1"
+                android:layout_margin="4dp"
+                android:text="@string/button_minus_one"
+                style="?android:attr/buttonBarButtonStyle" />
 
-            <!--        Row 2       -->
-            <TextView
-                android:id="@+id/full_radius_lbl"
+            <Button
                 android:layout_width="0dp"
-                android:layout_height="0dp"
-                android:layout_row="2"
-                android:layout_rowSpan="1"
-                android:layout_rowWeight="1"
-                android:layout_column="0"
-                android:layout_columnSpan="1"
-                android:layout_columnWeight="3"
-                android:autoSizeTextType="uniform"
-                android:gravity="center_vertical|end"
-                android:inputType="none"
-                android:maxLines="1"
-                android:text="Full radial distance (mm)" />
+                android:layout_height="match_parent"
+                android:layout_weight="1"
+                android:layout_margin="4dp"
+                android:text="@string/button_plus_one"
+                style="?android:attr/buttonBarButtonStyle" />
 
-
-            <EditText
-                android:id="@+id/full_radius"
+            <Button
                 android:layout_width="0dp"
-                android:layout_height="0dp"
-                android:layout_row="2"
-                android:layout_rowSpan="1"
-                android:layout_rowWeight="1"
-                android:layout_column="1"
-                android:layout_columnSpan="1"
-                android:layout_columnWeight="2"
-                android:autoSizeTextType="uniform"
-                android:autofillHints=""
-                android:gravity="center_vertical|start"
-                android:hint="Enter full radial distance (mm)"
-                android:inputType="number"
-                android:maxLines="1"
-                android:paddingStart="16dp"
-                android:imeOptions="flagNoExtractUi"/>
+                android:layout_height="match_parent"
+                android:layout_weight="1"
+                android:layout_margin="4dp"
+                android:text="@string/button_plus_ten"
+                style="?android:attr/buttonBarButtonStyle" />
 
-            <!--        Row 3       -->
-            <TextView
-                android:id="@+id/empty_radius_lbl"
-                android:layout_width="0dp"
-                android:layout_height="0dp"
-                android:layout_row="3"
-                android:layout_rowSpan="1"
-                android:layout_rowWeight="1"
-                android:layout_column="0"
-                android:layout_columnSpan="1"
-                android:layout_columnWeight="3"
-                android:autoSizeTextType="uniform"
-                android:gravity="center_vertical|end"
-                android:inputType="none"
-                android:maxLines="1"
-                android:text="Empty radial distance (mm)" />
-
-
-            <EditText
-                android:id="@+id/empty_radius"
-                android:layout_width="0dp"
-                android:layout_height="0dp"
-                android:layout_row="3"
-                android:layout_rowSpan="1"
-                android:layout_rowWeight="1"
-                android:layout_column="1"
-                android:layout_columnSpan="1"
-                android:layout_columnWeight="2"
-                android:autoSizeTextType="uniform"
-                android:autofillHints=""
-                android:gravity="center_vertical|start"
-                android:hint="Enter empty radial distance (mm)"
-                android:inputType="number"
-                android:maxLines="1"
-                android:paddingStart="16dp"
-                android:imeOptions="flagNoExtractUi"/>
-
-            <!--        Row 4       -->
-            <TextView
-                android:id="@+id/slot_width_lbl"
-                android:layout_width="0dp"
-                android:layout_height="0dp"
-                android:layout_row="4"
-                android:layout_rowSpan="1"
-                android:layout_rowWeight="1"
-                android:layout_column="0"
-                android:layout_columnSpan="1"
-                android:layout_columnWeight="3"
-                android:autoSizeTextType="uniform"
-                android:gravity="center_vertical|end"
-                android:inputType="none"
-                android:maxLines="1"
-                android:text="Wall-to-wall width (mm)" />
-
-
-            <EditText
-                android:id="@+id/slot_width"
-                android:layout_width="0dp"
-                android:layout_height="0dp"
-                android:layout_row="4"
-                android:layout_rowSpan="1"
-                android:layout_rowWeight="1"
-                android:layout_column="1"
-                android:layout_columnSpan="1"
-                android:layout_columnWeight="2"
-                android:autoSizeTextType="uniform"
-                android:autofillHints=""
-                android:gravity="center_vertical|start"
-                android:hint="Enter wall-to-wall width (mm)"
-                android:inputType="number"
-                android:maxLines="1"
-                android:paddingStart="16dp"
-                android:imeOptions="flagNoExtractUi"/>
-
-            <!--        Row 5       -->
-
-            <TextView
-                android:id="@+id/filament_diameter_lbl"
-                android:layout_width="0dp"
-                android:layout_height="0dp"
-                android:layout_row="5"
-                android:layout_rowSpan="1"
-                android:layout_rowWeight="1"
-                android:layout_column="0"
-                android:layout_columnSpan="1"
-                android:layout_columnWeight="3"
-                android:autoSizeTextType="uniform"
-                android:gravity="center_vertical|end"
-                android:inputType="none"
-                android:maxLines="1"
-                android:text="Filament diameter (mm)" />
-
-            <EditText
-                android:id="@+id/filament_diameter"
-                android:layout_width="0dp"
-                android:layout_height="0dp"
-                android:layout_row="5"
-                android:layout_rowSpan="1"
-                android:layout_rowWeight="1"
-                android:layout_column="1"
-                android:layout_columnSpan="1"
-                android:layout_columnWeight="2"
-                android:autoSizeTextType="uniform"
-                android:autofillHints=""
-                android:gravity="center_vertical|start"
-                android:hint="Enter filament diameter (mm)"
-                android:inputType="number"
-                android:maxLines="1"
-                android:paddingStart="16dp"
-                android:imeOptions="flagNoExtractUi"/>
-
-            <!--        Row 0       -->
-
-            <TextView
-                android:id="@+id/remaining_filament_lbl"
-                android:layout_width="0dp"
-                android:layout_height="0dp"
-                android:layout_row="0"
-                android:layout_rowSpan="1"
-                android:layout_rowWeight="1"
-                android:layout_column="0"
-                android:layout_columnSpan="1"
-                android:layout_columnWeight="1"
-                android:autoSizeTextType="uniform"
-                android:gravity="center_vertical|end"
-                android:inputType="none"
-                android:maxLines="1"
-                android:text="Remaining filament (meter)" />
-
-            <TextView
-                android:id="@+id/txt_remaining_filament"
-                android:layout_width="0dp"
-                android:layout_height="0dp"
-                android:layout_row="0"
-                android:layout_rowSpan="1"
-                android:layout_rowWeight="1"
-                android:layout_column="1"
-                android:layout_columnSpan="1"
-                android:layout_columnWeight="1"
-                android:autoSizeTextType="uniform"
-                android:gravity="center_vertical|end"
-                android:inputType="none"
-                android:maxLines="1" />
-
-        </GridLayout>
+        </LinearLayout>
 
     </GridLayout>
 

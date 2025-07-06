@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources><!-- res/values/styles.xml -->
+    <style name="LabelStyle">
+        <item name="android:layout_width">0dp</item>
+        <item name="android:layout_height">0dp</item>
+        <item name="android:layout_rowSpan">1</item>
+        <item name="android:layout_columnSpan">1</item>
+        <item name="android:gravity">center_vertical|end</item>
+        <item name="android:inputType">none</item>
+        <item name="android:autoSizeTextType">uniform</item>
+        <item name="android:maxLines">1</item>
+        <item name="android:layout_columnWeight">3</item>
+    </style>
+
+    <style name="EditTextStyle">
+        <item name="android:layout_width">0dp</item>
+        <item name="android:layout_height">0dp</item>
+        <item name="android:layout_rowSpan">1</item>
+        <item name="android:layout_columnSpan">1</item>
+        <item name="android:gravity">center_vertical|start</item>
+        <item name="android:inputType">number</item>
+        <item name="android:autoSizeTextType">uniform</item>
+        <item name="android:maxLines">1</item>
+        <item name="android:layout_columnWeight">2</item>
+    </style>
+
+    <style name="TextViewStyle">
+        <item name="android:layout_width">0dp</item>
+        <item name="android:layout_height">0dp</item>
+        <item name="android:layout_rowSpan">1</item>
+        <item name="android:layout_columnSpan">1</item>
+        <item name="android:gravity">center_vertical|end</item>
+        <item name="android:inputType">none</item>
+        <item name="android:autoSizeTextType">uniform</item>
+        <item name="android:maxLines">1</item>
+        <item name="android:layout_columnWeight">1</item>
+    </style>
+</resources>

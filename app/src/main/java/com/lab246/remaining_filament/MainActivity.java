@@ -1,151 +1,433 @@
 package com.lab246.remaining_filament;
 
-import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.text.Editable;
-import android.text.InputType;
 import android.text.TextWatcher;
+import android.view.View;
+import android.widget.Button;
 import android.widget.EditText;
-import android.widget.TextView;
+import android.widget.GridLayout;
+import android.widget.LinearLayout;
 
-import androidx.activity.EdgeToEdge;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
+import androidx.lifecycle.ViewModelProvider;
 
-import java.text.DecimalFormat;
+import java.util.Locale;
+
+import com.lab246.remaining_filament.databinding.ActivityMainBinding;
+
 
 public class MainActivity extends AppCompatActivity {
 
-    private EditText txtCoreDiameter;
-    private EditText txtFullRadius;
-    private EditText txtEmptyRadius;
-    private EditText txtSlotWidth;
-    private EditText txtFilamentDiameter;
-    private TextView txtRemainingFilament;
-
-    private SharedPreferences prefs;
-    private SharedPreferences.Editor editor;
+    private ActivityMainBinding binding;
+    private MainViewModel viewModel;
+    private EditText currentFocusedEditText;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        EdgeToEdge.enable(this);
-        setContentView(R.layout.activity_main);
-        ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main), (v, insets) -> {
+        binding = ActivityMainBinding.inflate(getLayoutInflater());
+        setContentView(binding.getRoot());
+
+        // Initialize ViewModel
+        viewModel = new ViewModelProvider(this).get(MainViewModel.class);
+
+        ViewCompat.setOnApplyWindowInsetsListener(binding.main, (v, insets) -> {
             Insets systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars());
             v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom);
             return insets;
         });
 
-        // Initialize views
-        txtCoreDiameter = findViewById(R.id.core_diameter);
-        txtFullRadius = findViewById(R.id.full_radius);
-        txtEmptyRadius = findViewById(R.id.empty_radius);
-        txtSlotWidth = findViewById(R.id.slot_width);
-        txtFilamentDiameter = findViewById(R.id.filament_diameter);
-        txtRemainingFilament = findViewById(R.id.txt_remaining_filament);
+        // Ensure EditText fields don't show keyboard when focused
 
-        // Set input types for decimal numbers
-        txtCoreDiameter.setInputType(InputType.TYPE_CLASS_NUMBER | InputType.TYPE_NUMBER_FLAG_DECIMAL);
-        txtFullRadius.setInputType(InputType.TYPE_CLASS_NUMBER | InputType.TYPE_NUMBER_FLAG_DECIMAL);
-        txtEmptyRadius.setInputType(InputType.TYPE_CLASS_NUMBER | InputType.TYPE_NUMBER_FLAG_DECIMAL);
-        txtSlotWidth.setInputType(InputType.TYPE_CLASS_NUMBER | InputType.TYPE_NUMBER_FLAG_DECIMAL);
-        txtFilamentDiameter.setInputType(InputType.TYPE_CLASS_NUMBER | InputType.TYPE_NUMBER_FLAG_DECIMAL);
-
-        // Initialize SharedPreferences
-        prefs = getSharedPreferences("MyPrefs", MODE_PRIVATE);
-        editor = prefs.edit();
-
-        // Get initial values with defaults
-        String coreDiameter = prefs.getString("core_diameter", "76");
-        String fullRadius = prefs.getString("full_radius", "62");
-        String emptyRadius = prefs.getString("empty_radius", "20");
-        String slotWidth = prefs.getString("slot_width", "64");
-        String filamentDiameter = prefs.getString("filament_diameter", "1.75");
-
-        // Set initial values to EditTexts
-        txtCoreDiameter.setText(coreDiameter);
-        txtFullRadius.setText(fullRadius);
-        txtEmptyRadius.setText(emptyRadius);
-        txtSlotWidth.setText(slotWidth);
-        txtFilamentDiameter.setText(filamentDiameter);
-
-        // Save initial values to SharedPreferences (even if they are defaults)
-        editor.putString("core_diameter", coreDiameter)
-                .putString("full_radius", fullRadius)
-                .putString("empty_radius", emptyRadius)
-                .putString("slot_width", slotWidth)
-                .putString("filament_diameter", filamentDiameter)
-                .apply();
-
-        // Update remaining filament immediately after setup
-        updateRemainingFilament();
-
+        // Observe LiveData from ViewModel
+        observeViewModel();
+        // Setup listeners to update ViewModel
         setupTextWatchers();
+        // Set up focus listeners to track the currently focused EditText
+        setupFocusListeners();
+        // Set up button click listeners
+        setupButtonListeners();
     }
 
-    private double calc(double core_diameter, double full_radius, double empty_radius, double slot_width, double filament_diameter) {
-        double avg_cyc_len = ((core_diameter + full_radius - empty_radius) * Math.PI);
-        double layers = Math.floor((full_radius - empty_radius) / filament_diameter);
-        double cyc_per_layer = Math.floor(slot_width / filament_diameter);
-        double result = avg_cyc_len * layers * cyc_per_layer / 1000;
-        return Math.max(result, 0);
+    /**
+     * Formats a double to a string with a specified number of decimal places,
+     * using Locale.US to ensure a consistent decimal separator ('.').
+     * @param value The numeric value to format.
+     * @param decimalPlaces The number of decimal places to display.
+     * @return A locale-independent formatted string.
+     */
+    private String formatMeasurement(double value, int decimalPlaces) {
+        // Create the format string dynamically, e.g., "%.0f", "%.2f"
+        String formatPattern = "%." + decimalPlaces + "f";
+        // Use Locale.US to guarantee the decimal separator is a period '.'
+        return String.format(Locale.US, formatPattern, value);
     }
 
-    @Override
-    protected void onSaveInstanceState(Bundle outState) {
-        super.onSaveInstanceState(outState);
 
-        outState.putString("core_diameter", txtCoreDiameter.getText().toString());
-        outState.putString("full_radius", txtFullRadius.getText().toString());
-        outState.putString("empty_radius", txtEmptyRadius.getText().toString());
-        outState.putString("slot_width", txtSlotWidth.getText().toString());
-        outState.putString("filament_diameter", txtFilamentDiameter.getText().toString());
+
+    private void observeViewModel() {
+        viewModel.getCoreDiameter().observe(this, s -> {
+            String currentDisplayValue = binding.calcLayout.coreDiameter.getText().toString();
+            if (!currentDisplayValue.equals(s)) {
+                try {
+                    double numericValue = Double.parseDouble(s);
+                    // Format to no decimal places
+                    String formattedValue = formatMeasurement(numericValue,0);
+                    binding.calcLayout.coreDiameter.setText(formattedValue);
+                } catch (NumberFormatException e) {
+                    binding.calcLayout.coreDiameter.setText(s);
+                }
+            }
+        });
+        viewModel.getFullRadius().observe(this, s -> {
+            String currentDisplayValue = binding.calcLayout.fullRadius.getText().toString();
+            if (!currentDisplayValue.equals(s)) {
+                try {
+                    double numericValue = Double.parseDouble(s);
+                    // Format to no decimal places
+                    String formattedValue = formatMeasurement(numericValue,0);
+                    binding.calcLayout.fullRadius.setText(formattedValue);
+                } catch (NumberFormatException e) {
+                    binding.calcLayout.fullRadius.setText(s);
+                }
+            }
+        });
+        viewModel.getEmptyRadius().observe(this, s -> {
+            String currentDisplayValue = binding.calcLayout.emptyRadius.getText().toString();
+            if (!currentDisplayValue.equals(s)) {
+                try {
+                    double numericValue = Double.parseDouble(s);
+                    // Format to no decimal places
+                    String formattedValue = formatMeasurement(numericValue,0);
+                    binding.calcLayout.emptyRadius.setText(formattedValue);
+                } catch (NumberFormatException e) {
+                    binding.calcLayout.emptyRadius.setText(s);
+                }
+            }
+        });
+        viewModel.getSlotWidth().observe(this, s -> {
+            String currentDisplayValue = binding.calcLayout.slotWidth.getText().toString();
+            if (!currentDisplayValue.equals(s)) {
+                try {
+                    double numericValue = Double.parseDouble(s);
+                    // Format to no decimal places
+                    String formattedValue = formatMeasurement(numericValue,0);
+                    binding.calcLayout.slotWidth.setText(formattedValue);
+                } catch (NumberFormatException e) {
+                    binding.calcLayout.slotWidth.setText(s);
+                }
+            }
+        });
+        viewModel.getFilamentDiameter().observe(this, s -> {
+            String currentDisplayValue = binding.calcLayout.filamentDiameter.getText().toString();
+            if (!currentDisplayValue.equals(s)) {
+                try {
+                    double numericValue = Double.parseDouble(s);
+                    // Format to 2 decimal places
+                    String formattedValue = formatMeasurement(numericValue,2);
+                    binding.calcLayout.filamentDiameter.setText(formattedValue);
+                } catch (NumberFormatException e) {
+                    binding.calcLayout.filamentDiameter.setText(s);
+                }
+            }
+        });
+        viewModel.getRemainingFilament().observe(this, s -> {
+            String currentDisplayValue = binding.calcLayout.txtRemainingFilament.getText().toString();
+            if (!currentDisplayValue.equals(s)) {
+                binding.calcLayout.txtRemainingFilament.setText(s);
+            }
+        });
     }
 
     private void setupTextWatchers() {
-        TextWatcher textWatcher = new TextWatcher() {
-            @Override
-            public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
-
-            @Override
-            public void onTextChanged(CharSequence s, int start, int before, int count) {
-                updateRemainingFilament();
+        binding.calcLayout.coreDiameter.addTextChangedListener(new TextWatcher() {
+            @Override public void beforeTextChanged(CharSequence s, int start, int count, int after) { }
+            @Override public void onTextChanged(CharSequence s, int start, int before, int count) { }
+            @Override public void afterTextChanged(Editable s) { viewModel.updateCoreDiameter(s.toString()); }
+        });
+        binding.calcLayout.fullRadius.addTextChangedListener(new TextWatcher() {
+            @Override public void beforeTextChanged(CharSequence s, int start, int count, int after) { }
+            @Override public void onTextChanged(CharSequence s, int start, int before, int count) { }
+            @Override public void afterTextChanged(Editable s) { viewModel.updateFullRadius(s.toString()); }
+        });
+        binding.calcLayout.emptyRadius.addTextChangedListener(new TextWatcher() {
+            @Override public void beforeTextChanged(CharSequence s, int start, int count, int after) { }
+            @Override public void onTextChanged(CharSequence s, int start, int before, int count) { }
+            @Override public void afterTextChanged(Editable s) { viewModel.updateEmptyRadius(s.toString()); }
+        });
+        binding.calcLayout.slotWidth.addTextChangedListener(new TextWatcher() {
+            @Override public void beforeTextChanged(CharSequence s, int start, int count, int after) { }
+            @Override public void onTextChanged(CharSequence s, int start, int before, int count) { }
+            @Override public void afterTextChanged(Editable s) { viewModel.updateSlotWidth(s.toString()); }
+        });
+        binding.calcLayout.filamentDiameter.addTextChangedListener(new TextWatcher() {
+            @Override public void beforeTextChanged(CharSequence s, int start, int count, int after) { }
+            @Override public void onTextChanged(CharSequence s, int start, int before, int count) { }
+            @Override public void afterTextChanged(Editable s) {
+                String value = s.toString();
+                viewModel.updateFilamentDiameter(value);
             }
-
-            @Override
-            public void afterTextChanged(Editable s) {
-                editor.putString("core_diameter", txtCoreDiameter.getText().toString())
-                        .putString("full_radius", txtFullRadius.getText().toString())
-                        .putString("empty_radius", txtEmptyRadius.getText().toString())
-                        .putString("slot_width", txtSlotWidth.getText().toString())
-                        .putString("filament_diameter", txtFilamentDiameter.getText().toString())
-                        .apply();
-            }
-        };
-
-        txtCoreDiameter.addTextChangedListener(textWatcher);
-        txtFullRadius.addTextChangedListener(textWatcher);
-        txtEmptyRadius.addTextChangedListener(textWatcher);
-        txtSlotWidth.addTextChangedListener(textWatcher);
-        txtFilamentDiameter.addTextChangedListener(textWatcher);
+        });
     }
 
-    private void updateRemainingFilament() {
-        try {
-            double core_diameter = Double.parseDouble(txtCoreDiameter.getText().toString());
-            double full_radius = Double.parseDouble(txtFullRadius.getText().toString());
-            double empty_radius = Double.parseDouble(txtEmptyRadius.getText().toString());
-            double slot_width = Double.parseDouble(txtSlotWidth.getText().toString());
-            double filament_diameter = Double.parseDouble(txtFilamentDiameter.getText().toString());
+    private void setupFocusListeners() {
+        // Set up touch listeners for all EditText fields to track the last touched field
+        setupFocusListener(binding.calcLayout.coreDiameter);
+        setupFocusListener(binding.calcLayout.fullRadius);
+        setupFocusListener(binding.calcLayout.emptyRadius);
+        setupFocusListener(binding.calcLayout.slotWidth);
+        setupFocusListener(binding.calcLayout.filamentDiameter);
+    }
+    
+    private void setupFocusListener(EditText editText) {
+        // Also add focus listener in case focus can still be gained
+        editText.setOnFocusChangeListener((view, hasFocus) -> {
+            if (hasFocus) {
+                // Reset all fields to regular font
+                resetFontStyles();
+                // Set focused field to bold
+                editText.setTypeface(null, android.graphics.Typeface.BOLD);
+                currentFocusedEditText = editText;
+            }
+        });
+    }
+    
+    private void resetFontStyles() {
+        binding.calcLayout.coreDiameter.setTypeface(null, android.graphics.Typeface.NORMAL);
+        binding.calcLayout.fullRadius.setTypeface(null, android.graphics.Typeface.NORMAL);
+        binding.calcLayout.emptyRadius.setTypeface(null, android.graphics.Typeface.NORMAL);
+        binding.calcLayout.slotWidth.setTypeface(null, android.graphics.Typeface.NORMAL);
+        binding.calcLayout.filamentDiameter.setTypeface(null, android.graphics.Typeface.NORMAL);
+    }
 
-            double result = calc(core_diameter, full_radius, empty_radius, slot_width, filament_diameter);
-            DecimalFormat decimalFormat = new DecimalFormat("#,##0.00");
-            txtRemainingFilament.setText(decimalFormat.format(result));
-        } catch (NumberFormatException e) {
-            txtRemainingFilament.setText("0.00");
+    private void setupButtonListeners() {
+        // Postpone the button setup until the layout is fully inflated
+        binding.getRoot().post(() -> {
+            // The button container is added as a child to the GridLayout (binding.main)
+            GridLayout gridLayout = binding.main;
+            
+            // Find the button container which should be the last row/column in the grid
+            for (int i = 0; i < gridLayout.getChildCount(); i++) {
+                View child = gridLayout.getChildAt(i);
+                
+                // Look for the LinearLayout that contains the buttons
+                if (child instanceof LinearLayout buttonContainer) {
+
+                    // Look for buttons in this container
+                    for (int j = 0; j < buttonContainer.getChildCount(); j++) {
+                        View buttonView = buttonContainer.getChildAt(j);
+                        
+                        if (buttonView instanceof Button button) {
+
+                            // Check the button text to determine which one it is using string resources
+                            String buttonText = button.getText().toString();
+
+                            if (getString(R.string.button_minus_ten).equals(buttonText)) {
+                                button.setOnClickListener(v -> handleMinusTenButtonClick());
+                            } else if (getString(R.string.button_plus_ten).equals(buttonText)) {
+                                button.setOnClickListener(v -> handlePlusTenButtonClick());
+                            } else if (getString(R.string.button_plus_one).equals(buttonText)) {
+                                button.setOnClickListener(v -> handlePlusOneButtonClick());
+                            } else if (getString(R.string.button_minus_one).equals(buttonText)) {
+                                button.setOnClickListener(v -> handleMinusOneButtonClick());
+                            }
+
+                        }
+                    }
+                }
+            }
+        });
+    }
+
+    private void handleMinusTenButtonClick() {
+        if (currentFocusedEditText != null) {
+            // Get the current value from the EditText as a string
+            String currentValueStr = currentFocusedEditText.getText().toString().trim();
+            
+            // Parse the string to a numeric value for calculation
+            double numericValue = 0.0; // Default value if parsing fails
+            if (!currentValueStr.isEmpty()) {
+                try {
+                    numericValue = Double.parseDouble(currentValueStr);
+                } catch (NumberFormatException e) {
+                    // If parsing fails, use default value of 0.0
+                    numericValue = 0.0;
+                }
+            }
+            
+            // Perform the arithmetic operation: subtract 10 for other fields, subtract 0.1 for filamentDiameter
+            double result;
+            if (currentFocusedEditText == binding.calcLayout.filamentDiameter) {
+                result = numericValue - 0.1;
+            } else {
+                result = numericValue - 10;
+            }
+            
+            // Ensure the result is non-negative
+            if (result < 0) {
+                result = 0.0;
+            }
+
+            // Convert the result back to string for display
+            String resultStr = String.valueOf(result);
+
+            // Update the appropriate ViewModel property based on which EditText was focused
+            if (currentFocusedEditText == binding.calcLayout.coreDiameter) {
+                viewModel.updateCoreDiameter(resultStr);
+            } else if (currentFocusedEditText == binding.calcLayout.fullRadius) {
+                viewModel.updateFullRadius(resultStr);
+            } else if (currentFocusedEditText == binding.calcLayout.emptyRadius) {
+                viewModel.updateEmptyRadius(resultStr);
+            } else if (currentFocusedEditText == binding.calcLayout.slotWidth) {
+                viewModel.updateSlotWidth(resultStr);
+            } else if (currentFocusedEditText == binding.calcLayout.filamentDiameter) {
+                viewModel.updateFilamentDiameter(resultStr);
+            }
+        }
+    }
+    
+    private void handlePlusTenButtonClick() {
+        if (currentFocusedEditText != null) {
+            // Get the current value from the EditText as a string
+            String currentValueStr = currentFocusedEditText.getText().toString().trim();
+            
+            // Parse the string to a numeric value for calculation
+            double numericValue = 0.0; // Default value if parsing fails
+            if (!currentValueStr.isEmpty()) {
+                try {
+                    numericValue = Double.parseDouble(currentValueStr);
+                } catch (NumberFormatException e) {
+                    // If parsing fails, use default value of 0.0
+                    numericValue = 0.0;
+                }
+            }
+            
+            // Perform the arithmetic operation: add 10 for other fields, add 0.1 for filamentDiameter
+            double result;
+            if (currentFocusedEditText == binding.calcLayout.filamentDiameter) {
+                result = numericValue + 0.1;
+            } else {
+                result = numericValue + 10;
+            }
+            
+            // Ensure the result is non-negative
+            if (result < 0) {
+                result = 0.0;
+            }
+
+            // Convert the result back to string for display
+            String resultStr = String.valueOf(result);
+
+            // Update the appropriate ViewModel property based on which EditText was focused
+            if (currentFocusedEditText == binding.calcLayout.coreDiameter) {
+                viewModel.updateCoreDiameter(resultStr);
+            } else if (currentFocusedEditText == binding.calcLayout.fullRadius) {
+                viewModel.updateFullRadius(resultStr);
+            } else if (currentFocusedEditText == binding.calcLayout.emptyRadius) {
+                viewModel.updateEmptyRadius(resultStr);
+            } else if (currentFocusedEditText == binding.calcLayout.slotWidth) {
+                viewModel.updateSlotWidth(resultStr);
+            } else if (currentFocusedEditText == binding.calcLayout.filamentDiameter) {
+                viewModel.updateFilamentDiameter(resultStr);
+            }
+        }
+    }
+    
+    private void handlePlusOneButtonClick() {
+        if (currentFocusedEditText != null) {
+            // Get the current value from the EditText as a string
+            String currentValueStr = currentFocusedEditText.getText().toString().trim();
+            
+            // Parse the string to a numeric value for calculation
+            double numericValue = 0.0; // Default value if parsing fails
+            if (!currentValueStr.isEmpty()) {
+                try {
+                    numericValue = Double.parseDouble(currentValueStr);
+                } catch (NumberFormatException e) {
+                    // If parsing fails, use default value of 0.0
+                    numericValue = 0.0;
+                }
+            }
+            
+            // Perform the arithmetic operation: add 1 for other fields, add 0.01 for filamentDiameter
+            double result;
+            if (currentFocusedEditText == binding.calcLayout.filamentDiameter) {
+                result = numericValue + 0.01;
+            } else {
+                result = numericValue + 1;
+            }
+            
+            // Ensure the result is non-negative
+            if (result < 0) {
+                result = 0.0;
+            }
+
+            // Convert the result back to string for display
+            String resultStr = String.valueOf(result);
+
+            // Update the appropriate ViewModel property based on which EditText was focused
+            if (currentFocusedEditText == binding.calcLayout.coreDiameter) {
+                viewModel.updateCoreDiameter(resultStr);
+            } else if (currentFocusedEditText == binding.calcLayout.fullRadius) {
+                viewModel.updateFullRadius(resultStr);
+            } else if (currentFocusedEditText == binding.calcLayout.emptyRadius) {
+                viewModel.updateEmptyRadius(resultStr);
+            } else if (currentFocusedEditText == binding.calcLayout.slotWidth) {
+                viewModel.updateSlotWidth(resultStr);
+            } else if (currentFocusedEditText == binding.calcLayout.filamentDiameter) {
+                viewModel.updateFilamentDiameter(resultStr);
+            }
+        }
+    }
+    
+    private void handleMinusOneButtonClick() {
+        if (currentFocusedEditText != null) {
+            // Get the current value from the EditText as a string
+            String currentValueStr = currentFocusedEditText.getText().toString().trim();
+            
+            // Parse the string to a numeric value for calculation
+            double numericValue = 0.0; // Default value if parsing fails
+            if (!currentValueStr.isEmpty()) {
+                try {
+                    numericValue = Double.parseDouble(currentValueStr);
+                } catch (NumberFormatException e) {
+                    // If parsing fails, use default value of 0.0
+                    numericValue = 0.0;
+                }
+            }
+            
+            // Perform the arithmetic operation: subtract 1 for other fields, subtract 0.01 for filamentDiameter
+            double result;
+            if (currentFocusedEditText == binding.calcLayout.filamentDiameter) {
+                result = numericValue - 0.01;
+            } else {
+                result = numericValue - 1;
+            }
+            
+            // Ensure the result is non-negative
+            if (result < 0) {
+                result = 0.0;
+            }
+
+            // Convert the result back to string for display
+            String resultStr = String.valueOf(result);
+
+            // Update the appropriate ViewModel property based on which EditText was focused
+            if (currentFocusedEditText == binding.calcLayout.coreDiameter) {
+                viewModel.updateCoreDiameter(resultStr);
+            } else if (currentFocusedEditText == binding.calcLayout.fullRadius) {
+                viewModel.updateFullRadius(resultStr);
+            } else if (currentFocusedEditText == binding.calcLayout.emptyRadius) {
+                viewModel.updateEmptyRadius(resultStr);
+            } else if (currentFocusedEditText == binding.calcLayout.slotWidth) {
+                viewModel.updateSlotWidth(resultStr);
+            } else if (currentFocusedEditText == binding.calcLayout.filamentDiameter) {
+                viewModel.updateFilamentDiameter(resultStr);
+            }
         }
     }
 }

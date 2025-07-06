@@ -1,0 +1,19 @@
+<resources>
+    <string name="app_name">Filament Meter</string>
+    <string name="remaining_filament_label">Remaining filament (meter)</string>
+    <string name="core_diameter_label">Hollow core diameter (mm)</string>
+    <string name="core_diameter_hint">Enter hollow core diameter (mm)</string>
+    <string name="full_radius_label">Full radial distance (mm)</string>
+    <string name="full_radius_hint">Enter full radial distance (mm)</string>
+    <string name="empty_radius_label">Empty radial distance (mm)</string>
+    <string name="empty_radius_hint">Enter empty radial distance (mm)</string>
+    <string name="slot_width_label">Wall-to-wall width (mm)</string>
+    <string name="slot_width_hint">Enter wall-to-wall width (mm)</string>
+    <string name="filament_diameter_label">Filament diameter (mm)</string>
+    <string name="filament_diameter_hint">Enter filament diameter (mm)</string>
+    <string name="button_minus_ten">-10</string>
+    <string name="button_minus_one">-1</string>
+    <string name="button_plus_one">+1</string>
+    <string name="button_plus_ten">+10</string>
+    <string name="illustration_of_parameters">Illustration of parameters</string>
+</resources>
