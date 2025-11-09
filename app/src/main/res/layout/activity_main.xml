@@ -24,7 +24,7 @@
             android:layout_columnSpan="1"
             android:layout_columnWeight="1"
             android:gravity="center_vertical|end"
-            android:src="@drawable/illustration"
+            android:src="@drawable/filament_vector"
             android:contentDescription="@string/illustration_of_parameters"  />
 
         <include

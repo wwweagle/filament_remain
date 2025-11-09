@@ -38,10 +38,10 @@ public class MainViewModel extends AndroidViewModel {
     public LiveData<String> getRemainingFilament() { return remainingFilament; }
 
     private void loadInitialValues() {
-        coreDiameter.setValue(prefs.getString("core_diameter", "76"));
-        fullRadius.setValue(prefs.getString("full_radius", "62"));
-        emptyRadius.setValue(prefs.getString("empty_radius", "20"));
-        slotWidth.setValue(prefs.getString("slot_width", "64"));
+        coreDiameter.setValue(prefs.getString("core_diameter", "80"));
+        fullRadius.setValue(prefs.getString("full_radius", "60"));
+        emptyRadius.setValue(prefs.getString("empty_radius", "22"));
+        slotWidth.setValue(prefs.getString("slot_width", "62"));
         filamentDiameter.setValue(prefs.getString("filament_diameter", "1.75"));
         updateRemainingFilament(); // Initial calculation
     }
@@ -97,11 +97,67 @@ public class MainViewModel extends AndroidViewModel {
               .apply();
     }
 
-    private double calc(double core_diameter, double full_radius, double empty_radius, double slot_width, double filament_diameter) {
-        double avg_cyc_len = ((core_diameter + full_radius - empty_radius) * Math.PI);
-        double layers = Math.floor((full_radius - empty_radius) / filament_diameter);
-        double cyc_per_layer = Math.floor(slot_width / filament_diameter);
-        double result = avg_cyc_len * layers * cyc_per_layer / 1000;
-        return Math.max(result, 0);
+    /**
+     * Public-facing calculation method that uses easy-to-measure dimensions.
+     * It derives the current winding thickness and then calls the core calculation logic.
+     *
+     * @param core_diameter The diameter of the spool's central hub (mm).
+     * @param full_winding_thickness The distance from the hub to the outer edge of the spool's flange (mm).
+     * @param empty_space_thickness The distance from the top of the filament to the outer edge of the flange (mm).
+     * @param slot_width The internal width of the spool where filament sits (mm).
+     * @param filament_diameter The diameter of the filament itself (mm).
+     * @return The estimated remaining length of the filament in meters.
+     */
+    private double calc(double core_diameter, double full_winding_thickness, double empty_space_thickness, double slot_width, double filament_diameter) {
+        // Calculate the thickness of the filament that is actually on the spool.
+        // This is the key step to bridge the measurement model with the physics model.
+        double current_winding_thickness = full_winding_thickness - empty_space_thickness;
+
+        // Ensure calculated thickness is not negative before passing to the core calculator.
+        if (current_winding_thickness <= 0) {
+            return 0;
+        }
+
+        // Call the accurate physics model with the derived thickness.
+        return calculateLengthFromThickness(core_diameter, current_winding_thickness, slot_width, filament_diameter);
     }
+
+    /**
+     * Core logic to calculate filament length based on its physical dimensions on the spool.
+     * Uses an iterative layer-by-layer summation, accounting for hexagonal packing.
+     * This method is kept private as it requires a derived thickness parameter.
+     */
+    private double calculateLengthFromThickness(double core_diameter, double current_winding_thickness, double slot_width, double filament_diameter) {
+        if (core_diameter <= 0 || current_winding_thickness <= 0 || slot_width <= 0 || filament_diameter <= 0) {
+            return 0;
+        }
+
+        double total_length_mm = 0;
+        double core_radius = core_diameter / 2.0;
+
+        // The vertical distance each new layer adds in a hexagonal packing arrangement.
+        double layer_height_increase = filament_diameter * Math.sqrt(3.0) / 2.0; // Approx 0.866 * filament_diameter
+
+        // Calculate how many layers of filament are present.
+        int num_layers = (int) Math.ceil(current_winding_thickness / layer_height_increase);
+
+        // Calculate how many times the filament can wind side-by-side in the spool's width.
+        double windings_per_layer = slot_width / filament_diameter;
+
+        // Start at the radius of the center of the first layer of filament.
+        double current_layer_radius = core_radius + (filament_diameter / 2.0);
+
+        for (int i = 0; i < num_layers; i++) {
+            double circumference = 2 * Math.PI * current_layer_radius;
+            total_length_mm += circumference * windings_per_layer;
+
+            // Move to the center of the next layer.
+            current_layer_radius += layer_height_increase;
+        }
+
+        // Convert total length from mm to meters.
+        double result_meters = total_length_mm / 1000.0;
+        return Math.max(result_meters, 0);
+    }
+
 }
