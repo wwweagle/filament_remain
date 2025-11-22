@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RadioGroup xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/spool_selector"
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:gravity="center"
+    android:layout_gravity="center"
+    android:padding="8dp">
+
+    <RadioButton
+        android:id="@+id/spool1_radio"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_margin="4dp"
+        android:text="@string/spool1_button"
+        android:textSize="40sp"
+        android:checked="true" />
+
+    <RadioButton
+        android:id="@+id/spool2_radio"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_margin="4dp"
+        android:text="@string/spool2_button"
+        android:textSize="40sp" />
+
+    <RadioButton
+        android:id="@+id/spool3_radio"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_margin="4dp"
+        android:text="@string/spool3_button"
+        android:textSize="40sp" />
+
+    <RadioButton
+        android:id="@+id/spool4_radio"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_margin="4dp"
+        android:text="@string/spool4_button"
+        android:textSize="40sp" />
+
+</RadioGroup>

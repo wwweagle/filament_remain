@@ -10,19 +10,27 @@ android {
         applicationId = "com.lab246.remaining_filament"
         minSdk = 27
         targetSdk = 36
-        versionCode = 8
-        versionName = "1.0.6"
+        versionCode = 11
+        versionName = "1.0.7"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
 
     buildTypes {
+        debug {
+            ndk {
+                debugSymbolLevel = "FULL"
+            }
+        }
         release {
             isMinifyEnabled = true
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
             )
+            ndk {
+                debugSymbolLevel = "FULL"
+            }
         }
     }
     compileOptions {
@@ -32,7 +40,13 @@ android {
     buildFeatures {
         viewBinding = true
     }
-    buildToolsVersion = "35.0.1"
+
+    packaging {
+        jniLibs {
+            useLegacyPackaging = true
+        }
+    }
+    buildToolsVersion = "36.1.0"
 }
 
 dependencies {
@@ -46,4 +60,5 @@ dependencies {
     testImplementation(libs.junit)
     androidTestImplementation(libs.ext.junit)
     androidTestImplementation(libs.espresso.core)
+    implementation("com.tbuonomo:dotsindicator:5.1.0")
 }

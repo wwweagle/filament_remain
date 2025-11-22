@@ -16,4 +16,9 @@
     <string name="button_plus_one">+1</string>
     <string name="button_plus_ten">+10</string>
     <string name="illustration_of_parameters">Illustration of parameters</string>
+    <string name="spool1_button">Spool #1</string>
+    <string name="spool2_button">Spool #2</string>
+    <string name="spool3_button">Spool #3</string>
+    <string name="spool4_button">Spool #4</string>
+    <string name="place_filler">0</string>
 </resources>

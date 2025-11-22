@@ -1,30 +1,35 @@
 package com.lab246.remaining_filament;
 
+import android.widget.RadioGroup;
+import android.widget.RadioButton;
 import android.os.Bundle;
-import android.text.Editable;
-import android.text.TextWatcher;
+import android.view.LayoutInflater;
 import android.view.View;
+import android.view.ViewGroup;
 import android.widget.Button;
-import android.widget.EditText;
+import android.widget.TextView;
 import android.widget.GridLayout;
 import android.widget.LinearLayout;
 
+import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
+import androidx.fragment.app.Fragment;
+import androidx.fragment.app.FragmentActivity;
+import androidx.viewpager2.adapter.FragmentStateAdapter;
 import androidx.lifecycle.ViewModelProvider;
 
 import java.util.Locale;
 
 import com.lab246.remaining_filament.databinding.ActivityMainBinding;
 
-
 public class MainActivity extends AppCompatActivity {
 
     private ActivityMainBinding binding;
     private MainViewModel viewModel;
-    private EditText currentFocusedEditText;
+    private TextView currentFocusedTextView;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -41,16 +46,135 @@ public class MainActivity extends AppCompatActivity {
             return insets;
         });
 
-        // Ensure EditText fields don't show keyboard when focused
-
         // Observe LiveData from ViewModel
         observeViewModel();
-        // Setup listeners to update ViewModel
-        setupTextWatchers();
         // Set up focus listeners to track the currently focused EditText
         setupFocusListeners();
         // Set up button click listeners
         setupButtonListeners();
+
+        // Initialize ViewPager2 with adapter
+        setupViewPager2();
+    }
+
+    private void setupViewPager2() {
+        ViewPagerAdapter viewPagerAdapter = new ViewPagerAdapter(this);
+        binding.viewPager.setAdapter(viewPagerAdapter);
+        binding.dotsIndicator.attachTo(binding.viewPager);
+
+    }
+
+    private static class ViewPagerAdapter extends FragmentStateAdapter {
+        public ViewPagerAdapter(FragmentActivity fa) {
+            super(fa);
+        }
+
+        @NonNull
+        @Override
+        public Fragment createFragment(int position) {
+            return switch (position) {
+                case 1 -> SpoolSelectorFragment.newInstance();
+                default -> ImageViewFragment.newInstance();
+            };
+        }
+
+        @Override
+        public int getItemCount() {
+            return 2; // Two panels: imageView and spool_selector
+        }
+    }
+
+    public static class ImageViewFragment extends Fragment {
+        public ImageViewFragment() {
+            // Required empty public constructor
+        }
+
+        public static ImageViewFragment newInstance() {
+            return new ImageViewFragment();
+        }
+
+        @Override
+        public View onCreateView(LayoutInflater inflater, ViewGroup container,
+                                 Bundle savedInstanceState) {
+            // Inflate the layout for this fragment
+            return inflater.inflate(R.layout.panel_image_view, container, false);
+        }
+    }
+
+    public static class SpoolSelectorFragment extends Fragment {
+        private MainViewModel viewModel;
+
+        private RadioGroup radioGroup;
+
+        public SpoolSelectorFragment() {
+            // Required empty public constructor
+        }
+
+        public static SpoolSelectorFragment newInstance() {
+            return new SpoolSelectorFragment();
+        }
+
+        @Override
+        public void onCreate(Bundle savedInstanceState) {
+            super.onCreate(savedInstanceState);
+            // Get the shared ViewModel
+            viewModel = new ViewModelProvider(requireActivity()).get(MainViewModel.class);
+        }
+
+        @Override
+        public View onCreateView(LayoutInflater inflater, ViewGroup container,
+                                 Bundle savedInstanceState) {
+            // Inflate the layout for this fragment
+            return inflater.inflate(R.layout.panel_spool_selector, container, false);
+        }
+
+        @Override
+        public void onViewCreated(@NonNull View view, Bundle savedInstanceState) {
+            super.onViewCreated(view, savedInstanceState);
+            // Set up the spool selector radio buttons to work with the ViewModel
+            radioGroup = view.findViewById(R.id.spool_selector);
+            setupSpoolSelector();
+            observeViewModel();
+        }
+
+        private void setupSpoolSelector() {
+            // Set up a listener to notify the ViewModel when the user clicks a button
+            radioGroup.setOnCheckedChangeListener((group, checkedId) -> {
+                int spoolIndex = 0;
+                if (checkedId == R.id.spool1_radio) {
+
+                    spoolIndex = 0;
+                } else if (checkedId == R.id.spool2_radio) {
+                    spoolIndex = 1;
+                } else if (checkedId == R.id.spool3_radio) {
+                    spoolIndex = 2;
+                } else if (checkedId == R.id.spool4_radio) {
+                    spoolIndex = 3;
+                }
+                // Tell the ViewModel about the user's selection
+                viewModel.updateSpoolSelection(spoolIndex);
+            });
+        }
+
+        private void observeViewModel() {
+            // Observe the selectedSpool LiveData. This will fire on startup and on any change.
+            viewModel.getSelectedSpool().observe(getViewLifecycleOwner(), selectedSpoolIndex -> {
+                if (selectedSpoolIndex != null) {
+                    int buttonIdToCheck = -1;
+                    switch (selectedSpoolIndex) {
+                        case 0: buttonIdToCheck = R.id.spool1_radio; break;
+                        case 1: buttonIdToCheck = R.id.spool2_radio; break;
+                        case 2: buttonIdToCheck = R.id.spool3_radio; break;
+                        case 3: buttonIdToCheck = R.id.spool4_radio; break;
+                    }
+                    // Only update the UI if it's not already on the correct selection.
+                    // This prevents an infinite loop with the OnCheckedChangeListener.
+                    if (buttonIdToCheck != -1 && radioGroup.getCheckedRadioButtonId() != buttonIdToCheck) {
+                        radioGroup.check(buttonIdToCheck);
+                    }
+                }
+            });
+        }
     }
 
     /**
@@ -143,39 +267,15 @@ public class MainActivity extends AppCompatActivity {
         });
     }
 
+    // TextViews don't have text change listeners like EditText,
+    // so we'll rely on click/touch handlers to set focus and button-based updates
     private void setupTextWatchers() {
-        binding.calcLayout.coreDiameter.addTextChangedListener(new TextWatcher() {
-            @Override public void beforeTextChanged(CharSequence s, int start, int count, int after) { }
-            @Override public void onTextChanged(CharSequence s, int start, int before, int count) { }
-            @Override public void afterTextChanged(Editable s) { viewModel.updateCoreDiameter(s.toString()); }
-        });
-        binding.calcLayout.fullRadius.addTextChangedListener(new TextWatcher() {
-            @Override public void beforeTextChanged(CharSequence s, int start, int count, int after) { }
-            @Override public void onTextChanged(CharSequence s, int start, int before, int count) { }
-            @Override public void afterTextChanged(Editable s) { viewModel.updateFullRadius(s.toString()); }
-        });
-        binding.calcLayout.emptyRadius.addTextChangedListener(new TextWatcher() {
-            @Override public void beforeTextChanged(CharSequence s, int start, int count, int after) { }
-            @Override public void onTextChanged(CharSequence s, int start, int before, int count) { }
-            @Override public void afterTextChanged(Editable s) { viewModel.updateEmptyRadius(s.toString()); }
-        });
-        binding.calcLayout.slotWidth.addTextChangedListener(new TextWatcher() {
-            @Override public void beforeTextChanged(CharSequence s, int start, int count, int after) { }
-            @Override public void onTextChanged(CharSequence s, int start, int before, int count) { }
-            @Override public void afterTextChanged(Editable s) { viewModel.updateSlotWidth(s.toString()); }
-        });
-        binding.calcLayout.filamentDiameter.addTextChangedListener(new TextWatcher() {
-            @Override public void beforeTextChanged(CharSequence s, int start, int count, int after) { }
-            @Override public void onTextChanged(CharSequence s, int start, int before, int count) { }
-            @Override public void afterTextChanged(Editable s) {
-                String value = s.toString();
-                viewModel.updateFilamentDiameter(value);
-            }
-        });
+        // TextViews don't support text change listeners, so this method is no longer needed
+        // Input will be handled through the button system and focus tracking
     }
 
     private void setupFocusListeners() {
-        // Set up touch listeners for all EditText fields to track the last touched field
+        // Set up touch listeners for all TextView fields to track the last touched field
         setupFocusListener(binding.calcLayout.coreDiameter);
         setupFocusListener(binding.calcLayout.fullRadius);
         setupFocusListener(binding.calcLayout.emptyRadius);
@@ -183,15 +283,24 @@ public class MainActivity extends AppCompatActivity {
         setupFocusListener(binding.calcLayout.filamentDiameter);
     }
     
-    private void setupFocusListener(EditText editText) {
+    private void setupFocusListener(TextView textView) {
+        // Add click listener to set focus
+        textView.setOnClickListener(v -> {
+            // Reset all fields to regular font
+            resetFontStyles();
+            // Set clicked field to bold
+            textView.setTypeface(null, android.graphics.Typeface.BOLD);
+            currentFocusedTextView = textView;
+        });
+
         // Also add focus listener in case focus can still be gained
-        editText.setOnFocusChangeListener((view, hasFocus) -> {
+        textView.setOnFocusChangeListener((view, hasFocus) -> {
             if (hasFocus) {
                 // Reset all fields to regular font
                 resetFontStyles();
                 // Set focused field to bold
-                editText.setTypeface(null, android.graphics.Typeface.BOLD);
-                currentFocusedEditText = editText;
+                textView.setTypeface(null, android.graphics.Typeface.BOLD);
+                currentFocusedTextView = textView;
             }
         });
     }
@@ -244,10 +353,10 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void handleMinusTenButtonClick() {
-        if (currentFocusedEditText != null) {
-            // Get the current value from the EditText as a string
-            String currentValueStr = currentFocusedEditText.getText().toString().trim();
-            
+        if (currentFocusedTextView != null) {
+            // Get the current value from the TextView as a string
+            String currentValueStr = currentFocusedTextView.getText().toString().trim();
+
             // Parse the string to a numeric value for calculation
             double numericValue = 0.0; // Default value if parsing fails
             if (!currentValueStr.isEmpty()) {
@@ -258,15 +367,15 @@ public class MainActivity extends AppCompatActivity {
                     numericValue = 0.0;
                 }
             }
-            
+
             // Perform the arithmetic operation: subtract 10 for other fields, subtract 0.1 for filamentDiameter
             double result;
-            if (currentFocusedEditText == binding.calcLayout.filamentDiameter) {
+            if (currentFocusedTextView == binding.calcLayout.filamentDiameter) {
                 result = numericValue - 0.1;
             } else {
                 result = numericValue - 10;
             }
-            
+
             // Ensure the result is non-negative
             if (result < 0) {
                 result = 0.0;
@@ -275,26 +384,26 @@ public class MainActivity extends AppCompatActivity {
             // Convert the result back to string for display
             String resultStr = String.valueOf(result);
 
-            // Update the appropriate ViewModel property based on which EditText was focused
-            if (currentFocusedEditText == binding.calcLayout.coreDiameter) {
+            // Update the appropriate ViewModel property based on which TextView was focused
+            if (currentFocusedTextView == binding.calcLayout.coreDiameter) {
                 viewModel.updateCoreDiameter(resultStr);
-            } else if (currentFocusedEditText == binding.calcLayout.fullRadius) {
+            } else if (currentFocusedTextView == binding.calcLayout.fullRadius) {
                 viewModel.updateFullRadius(resultStr);
-            } else if (currentFocusedEditText == binding.calcLayout.emptyRadius) {
+            } else if (currentFocusedTextView == binding.calcLayout.emptyRadius) {
                 viewModel.updateEmptyRadius(resultStr);
-            } else if (currentFocusedEditText == binding.calcLayout.slotWidth) {
+            } else if (currentFocusedTextView == binding.calcLayout.slotWidth) {
                 viewModel.updateSlotWidth(resultStr);
-            } else if (currentFocusedEditText == binding.calcLayout.filamentDiameter) {
+            } else if (currentFocusedTextView == binding.calcLayout.filamentDiameter) {
                 viewModel.updateFilamentDiameter(resultStr);
             }
         }
     }
     
     private void handlePlusTenButtonClick() {
-        if (currentFocusedEditText != null) {
-            // Get the current value from the EditText as a string
-            String currentValueStr = currentFocusedEditText.getText().toString().trim();
-            
+        if (currentFocusedTextView != null) {
+            // Get the current value from the TextView as a string
+            String currentValueStr = currentFocusedTextView.getText().toString().trim();
+
             // Parse the string to a numeric value for calculation
             double numericValue = 0.0; // Default value if parsing fails
             if (!currentValueStr.isEmpty()) {
@@ -305,15 +414,15 @@ public class MainActivity extends AppCompatActivity {
                     numericValue = 0.0;
                 }
             }
-            
+
             // Perform the arithmetic operation: add 10 for other fields, add 0.1 for filamentDiameter
             double result;
-            if (currentFocusedEditText == binding.calcLayout.filamentDiameter) {
+            if (currentFocusedTextView == binding.calcLayout.filamentDiameter) {
                 result = numericValue + 0.1;
             } else {
                 result = numericValue + 10;
             }
-            
+
             // Ensure the result is non-negative
             if (result < 0) {
                 result = 0.0;
@@ -322,26 +431,26 @@ public class MainActivity extends AppCompatActivity {
             // Convert the result back to string for display
             String resultStr = String.valueOf(result);
 
-            // Update the appropriate ViewModel property based on which EditText was focused
-            if (currentFocusedEditText == binding.calcLayout.coreDiameter) {
+            // Update the appropriate ViewModel property based on which TextView was focused
+            if (currentFocusedTextView == binding.calcLayout.coreDiameter) {
                 viewModel.updateCoreDiameter(resultStr);
-            } else if (currentFocusedEditText == binding.calcLayout.fullRadius) {
+            } else if (currentFocusedTextView == binding.calcLayout.fullRadius) {
                 viewModel.updateFullRadius(resultStr);
-            } else if (currentFocusedEditText == binding.calcLayout.emptyRadius) {
+            } else if (currentFocusedTextView == binding.calcLayout.emptyRadius) {
                 viewModel.updateEmptyRadius(resultStr);
-            } else if (currentFocusedEditText == binding.calcLayout.slotWidth) {
+            } else if (currentFocusedTextView == binding.calcLayout.slotWidth) {
                 viewModel.updateSlotWidth(resultStr);
-            } else if (currentFocusedEditText == binding.calcLayout.filamentDiameter) {
+            } else if (currentFocusedTextView == binding.calcLayout.filamentDiameter) {
                 viewModel.updateFilamentDiameter(resultStr);
             }
         }
     }
     
     private void handlePlusOneButtonClick() {
-        if (currentFocusedEditText != null) {
-            // Get the current value from the EditText as a string
-            String currentValueStr = currentFocusedEditText.getText().toString().trim();
-            
+        if (currentFocusedTextView != null) {
+            // Get the current value from the TextView as a string
+            String currentValueStr = currentFocusedTextView.getText().toString().trim();
+
             // Parse the string to a numeric value for calculation
             double numericValue = 0.0; // Default value if parsing fails
             if (!currentValueStr.isEmpty()) {
@@ -352,15 +461,15 @@ public class MainActivity extends AppCompatActivity {
                     numericValue = 0.0;
                 }
             }
-            
+
             // Perform the arithmetic operation: add 1 for other fields, add 0.01 for filamentDiameter
             double result;
-            if (currentFocusedEditText == binding.calcLayout.filamentDiameter) {
+            if (currentFocusedTextView == binding.calcLayout.filamentDiameter) {
                 result = numericValue + 0.01;
             } else {
                 result = numericValue + 1;
             }
-            
+
             // Ensure the result is non-negative
             if (result < 0) {
                 result = 0.0;
@@ -369,26 +478,26 @@ public class MainActivity extends AppCompatActivity {
             // Convert the result back to string for display
             String resultStr = String.valueOf(result);
 
-            // Update the appropriate ViewModel property based on which EditText was focused
-            if (currentFocusedEditText == binding.calcLayout.coreDiameter) {
+            // Update the appropriate ViewModel property based on which TextView was focused
+            if (currentFocusedTextView == binding.calcLayout.coreDiameter) {
                 viewModel.updateCoreDiameter(resultStr);
-            } else if (currentFocusedEditText == binding.calcLayout.fullRadius) {
+            } else if (currentFocusedTextView == binding.calcLayout.fullRadius) {
                 viewModel.updateFullRadius(resultStr);
-            } else if (currentFocusedEditText == binding.calcLayout.emptyRadius) {
+            } else if (currentFocusedTextView == binding.calcLayout.emptyRadius) {
                 viewModel.updateEmptyRadius(resultStr);
-            } else if (currentFocusedEditText == binding.calcLayout.slotWidth) {
+            } else if (currentFocusedTextView == binding.calcLayout.slotWidth) {
                 viewModel.updateSlotWidth(resultStr);
-            } else if (currentFocusedEditText == binding.calcLayout.filamentDiameter) {
+            } else if (currentFocusedTextView == binding.calcLayout.filamentDiameter) {
                 viewModel.updateFilamentDiameter(resultStr);
             }
         }
     }
     
     private void handleMinusOneButtonClick() {
-        if (currentFocusedEditText != null) {
-            // Get the current value from the EditText as a string
-            String currentValueStr = currentFocusedEditText.getText().toString().trim();
-            
+        if (currentFocusedTextView != null) {
+            // Get the current value from the TextView as a string
+            String currentValueStr = currentFocusedTextView.getText().toString().trim();
+
             // Parse the string to a numeric value for calculation
             double numericValue = 0.0; // Default value if parsing fails
             if (!currentValueStr.isEmpty()) {
@@ -399,15 +508,15 @@ public class MainActivity extends AppCompatActivity {
                     numericValue = 0.0;
                 }
             }
-            
+
             // Perform the arithmetic operation: subtract 1 for other fields, subtract 0.01 for filamentDiameter
             double result;
-            if (currentFocusedEditText == binding.calcLayout.filamentDiameter) {
+            if (currentFocusedTextView == binding.calcLayout.filamentDiameter) {
                 result = numericValue - 0.01;
             } else {
                 result = numericValue - 1;
             }
-            
+
             // Ensure the result is non-negative
             if (result < 0) {
                 result = 0.0;
@@ -416,16 +525,16 @@ public class MainActivity extends AppCompatActivity {
             // Convert the result back to string for display
             String resultStr = String.valueOf(result);
 
-            // Update the appropriate ViewModel property based on which EditText was focused
-            if (currentFocusedEditText == binding.calcLayout.coreDiameter) {
+            // Update the appropriate ViewModel property based on which TextView was focused
+            if (currentFocusedTextView == binding.calcLayout.coreDiameter) {
                 viewModel.updateCoreDiameter(resultStr);
-            } else if (currentFocusedEditText == binding.calcLayout.fullRadius) {
+            } else if (currentFocusedTextView == binding.calcLayout.fullRadius) {
                 viewModel.updateFullRadius(resultStr);
-            } else if (currentFocusedEditText == binding.calcLayout.emptyRadius) {
+            } else if (currentFocusedTextView == binding.calcLayout.emptyRadius) {
                 viewModel.updateEmptyRadius(resultStr);
-            } else if (currentFocusedEditText == binding.calcLayout.slotWidth) {
+            } else if (currentFocusedTextView == binding.calcLayout.slotWidth) {
                 viewModel.updateSlotWidth(resultStr);
-            } else if (currentFocusedEditText == binding.calcLayout.filamentDiameter) {
+            } else if (currentFocusedTextView == binding.calcLayout.filamentDiameter) {
                 viewModel.updateFilamentDiameter(resultStr);
             }
         }
